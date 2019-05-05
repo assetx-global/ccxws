@@ -327,8 +327,8 @@ class BittrexClient extends EventEmitter {
   // prettier-ignore
   _constructLevel2Snapshot(msg, market) {
     let sequenceId = msg.Nonce;
-    let bids = msg.Buys.map(p => new Level2Point(p.Rate.toFixed(8), p.Quantity.toFixed(8), undefined, { type: p.Type }));
-    let asks = msg.Sells.map(p => new Level2Point(p.Rate.toFixed(8), p.Quantity.toFixed(8), undefined, { type: p.Type }));
+    let bids = msg.Buys.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, { type: p.Type }));
+    let asks = msg.Sells.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, { type: p.Type }));
     return new Level2Snapshot({
       exchange: "Bittrex",
       base: market.base,
@@ -342,8 +342,8 @@ class BittrexClient extends EventEmitter {
   // prettier-ignore
   _constructLevel2Update(msg, market) {
     let sequenceId = msg.Nonce;
-    let bids = msg.Buys.map(p => new Level2Point(p.Rate.toFixed(8), p.Quantity.toFixed(8), undefined, { type: p.Type }));
-    let asks = msg.Sells.map(p => new Level2Point(p.Rate.toFixed(8), p.Quantity.toFixed(8), undefined, { type: p.Type }));
+    let bids = msg.Buys.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, { type: p.Type }));
+    let asks = msg.Sells.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, { type: p.Type }));
 
     if(!this.prevSeqDict[msg.MarketName]){
       this.prevSeqDict[msg.MarketName] = sequenceId;
@@ -371,8 +371,8 @@ class BittrexClient extends EventEmitter {
   _getTradeId(msg) {
     let ms = moment.utc(msg.TimeStamp).valueOf();
     let buysell = msg.OrderType === "BUY" ? 1 : 0;
-    let price = msg.Rate.toFixed(8);
-    let amount = msg.Quantity.toFixed(8);
+    let price = msg.Rate.toFixed(15);
+    let amount = msg.Quantity.toFixed(15);
     let preimage = `${ms}:${buysell}:${price}:${amount}`;
     let hasher = crypto.createHash("md5");
     hasher.update(preimage);
