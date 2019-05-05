@@ -133,7 +133,7 @@ class CoinbaseProClient extends BasicClient {
     let change = parseFloat(price) - parseFloat(open_24h);
     let changePercent = ((parseFloat(price) - parseFloat(open_24h)) / parseFloat(open_24h)) * 100;
     return new Ticker({
-      exchange: "CoinbasePro",
+      exchange: "gdax",
       base: market.base,
       quote: market.quote,
       timestamp: moment.utc(time).valueOf(),
@@ -161,7 +161,7 @@ class CoinbaseProClient extends BasicClient {
     let sellOrderId = side === "sell" ? maker_order_id : taker_order_id;
 
     return new Trade({
-      exchange: "CoinbasePro",
+      exchange: "gdax",
       base: market.base,
       quote: market.quote,
       tradeId: trade_id,
@@ -180,7 +180,7 @@ class CoinbaseProClient extends BasicClient {
     asks = asks.map(([price, size]) => new Level2Point(price, size));
 
     return new Level2Snapshot({
-      exchange: "CoinbasePro",
+      exchange: "gdax",
       base: market.base,
       quote: market.quote,
       bids,
@@ -199,7 +199,7 @@ class CoinbaseProClient extends BasicClient {
     });
 
     return new Level2Update({
-      exchange: "CoinbasePro",
+      exchange: "gdax",
       base: market.base,
       quote: market.quote,
       asks,
@@ -260,7 +260,7 @@ class CoinbaseProClient extends BasicClient {
     else bids.push(point);
 
     return new Level3Update({
-      exchange: "CoinbasePro",
+      exchange: "gdax",
       base: market.base,
       quote: market.quote,
       sequenceId,
