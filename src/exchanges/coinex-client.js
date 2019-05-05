@@ -15,7 +15,6 @@ class CoinexClient extends BasicMultiClient {
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Updates = true;
-    this.channelsCounter = 0;
   }
 
   _createBasicClient() {
@@ -83,14 +82,13 @@ class CoinexSingleClient extends BasicClient {
     );
   }
 
-  _sendSubLevel2Updates(remote_ids) {
-    const params = remote_ids.map(remoteId => [remoteId, 100, '0']);
+  _sendSubLevel2Updates(remote_id) {
     this._wss.send(
       JSON.stringify({
-        method: 'depth.subscribe_multi',
-        params,
-        id: this.channelsCounter++,
-      }),
+        method: "depth.subscribe",
+        params: [remote_id, 100, "0"], // 100 is the maximum number of items Coinex will let you request
+        id: 1,
+      })
     );
   }
 
