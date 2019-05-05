@@ -163,16 +163,36 @@ class BasicTradeClient extends EventEmitter {
    */
   _subscribe(market, map, msg, sendFn) {
     this._connect();
-    let remote_id = market.id;
-    if (!map.has(remote_id)) {
-      winston.info(msg, this._name, remote_id);
-      map.set(remote_id, market);
+    if (!Array.isArray(market)) {
+      let remote_id = market.id;
+      if (!map.has(remote_id)) {
+        // winston.info(msg, this._name, remote_id);
+        map.set(remote_id, market);
 
-      // perform the subscription if we're connected
-      // and if not, then we'll reply on the _onConnected event
-      // to send the signal to our server!
+        // perform the subscription if we're connected
+        // and if not, then we'll reply on the _onConnected event
+        // to send the signal to our server!
+        if (this._wss.isConnected) {
+          sendFn(remote_id);
+        }
+        return true;
+      }
+    } else {
+      const remoteIdsArray = [];
+      market.forEach(currMarket => {
+        let remote_id = currMarket.id;
+        remoteIdsArray.push(currMarket.id);
+        if (!map.has(remote_id)) {
+          // winston.info(msg, this._name, remote_id);
+          map.set(remote_id, currMarket);
+
+          // perform the subscription if we're connected
+          // and if not, then we'll reply on the _onConnected event
+          // to send the signal to our server!
+        }
+      });
       if (this._wss.isConnected) {
-        sendFn(remote_id);
+        sendFn(remoteIdsArray);
       }
       return true;
     }

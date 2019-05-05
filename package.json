@@ -28,6 +28,7 @@
     "pusher-js": "^4.4.0",
     "semaphore": "^1.1.0",
     "signalr-client": "0.0.17",
+    "underscore": "^1.9.1",
     "winston": "^2.4.4",
     "ws": "^5.1.1"
   },

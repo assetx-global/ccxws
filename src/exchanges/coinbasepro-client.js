@@ -10,7 +10,7 @@ const Level3Update = require("../level3-update");
 
 class CoinbaseProClient extends BasicClient {
   constructor() {
-    super("wss://ws-feed.pro.coinbase.com", "CoinbasePro");
+    super("wss://ws-feed.pro.coinbase.com", "gdax");
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Spotshots = false;

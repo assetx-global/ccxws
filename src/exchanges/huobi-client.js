@@ -167,8 +167,8 @@ class HuobiClient extends BasicClient {
 
   _constructLevel2Snapshot(msg, market) {
     let { ts, tick } = msg;
-    let bids = tick.bids.map(p => new Level2Point(p[0].toFixed(8), p[1].toFixed(8)));
-    let asks = tick.asks.map(p => new Level2Point(p[0].toFixed(8), p[1].toFixed(8)));
+    let bids = tick.bids.map(p => new Level2Point(p[0].toFixed(15), p[1].toFixed(15)));
+    let asks = tick.asks.map(p => new Level2Point(p[0].toFixed(15), p[1].toFixed(15)));
     return new Level2Snapshot({
       exchange: "Huobi",
       base: market.base,
