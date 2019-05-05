@@ -30,7 +30,7 @@ class KrakenClient extends BasicClient {
     This client will retrieve the market keys from those maps to
     determine the remoteIds to send to the server on all sub/unsub requests.
   */
-  constructor({ autoloadSymbolMaps = true } = {}) {
+  constructor({ autoloadSymbolMaps = false } = {}) {
     super("wss://ws.kraken.com", "Kraken");
 
     this.hasTickers = true;
@@ -115,7 +115,7 @@ class KrakenClient extends BasicClient {
    */
   _debounceSend(debounceKey, subMap, subscribe, subscription) {
     this._debounce(debounceKey, () => {
-      let wsSymbols = this._wsSymbolsFromSubMap(subMap);
+      let wsSymbols = [...subMap.keys()];
       this._wss.send(
         JSON.stringify({
           event: subscribe ? "subscribe" : "unsubscribe",
@@ -195,7 +195,7 @@ class KrakenClient extends BasicClient {
   _sendSubLevel2Updates() {
     this._debounceSend("sub-l2updates", this._level2UpdateSubs, true, {
       name: "book",
-      depth: 1000,
+      depth: 100,
     });
   }
 
@@ -266,7 +266,8 @@ class KrakenClient extends BasicClient {
 
     // From the subscriptionLog entry's pair, we can convert
     // the ws symbol into a rest symbol
-    let remote_id = this.fromWsMap.get(sl.pair);
+    sl.pair = sl.pair.replace('XBT', 'BTC').replace('XDG', 'DOGE');
+    let remote_id = this._level2UpdateSubs.get(sl.pair).id;
 
     // tickers
     if (sl.subscription.name === "ticker") {
