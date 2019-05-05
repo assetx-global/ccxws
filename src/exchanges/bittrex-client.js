@@ -21,6 +21,7 @@ class BittrexClient extends EventEmitter {
     this._level2UpdateSubs = new Map();
     this._watcher = new Watcher(this);
     this._tickerConnected;
+    this.prevSeqDict = {};
 
     this.hasTickers = true;
     this.hasTrades = true;
@@ -343,6 +344,20 @@ class BittrexClient extends EventEmitter {
     let sequenceId = msg.Nonce;
     let bids = msg.Buys.map(p => new Level2Point(p.Rate.toFixed(8), p.Quantity.toFixed(8), undefined, { type: p.Type }));
     let asks = msg.Sells.map(p => new Level2Point(p.Rate.toFixed(8), p.Quantity.toFixed(8), undefined, { type: p.Type }));
+
+    if(!this.prevSeqDict[msg.MarketName]){
+      this.prevSeqDict[msg.MarketName] = sequenceId;
+    }else{
+      if(sequenceId - this.prevSeqDict[msg.MarketName] !== 1){
+        console.log(`bittrex book out of sync ${  sequenceId - this.prevSeqDict[msg.MarketName]}`);
+        delete this.prevSeqDict[msg.MarketName];
+       this.close();
+       this._connect();
+      } else {
+        this.prevSeqDict[msg.MarketName] = sequenceId;
+      }
+    }
+
     return new Level2Update({
       exchange: "Bittrex",
       base: market.base,
