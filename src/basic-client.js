@@ -29,6 +29,7 @@ class BasicTradeClient extends EventEmitter {
     this.hasLevel2Snapshots = false;
     this.hasLevel2Updates = false;
     this.hasLevel3Updates = false;
+    this.sendAllUpdates = ['Coinex', 'Kraken', 'OKEx', 'GateIO'];
   }
 
   //////////////////////////////////////////////
@@ -254,8 +255,12 @@ class BasicTradeClient extends EventEmitter {
     for (let marketSymbol of this._level2SnapshotSubs.keys()) {
       this._sendSubLevel2Snapshots(marketSymbol);
     }
-    for (let marketSymbol of this._level2UpdateSubs.keys()) {
-      this._sendSubLevel2Updates(marketSymbol);
+    if (this.sendAllUpdates.includes(this._name)) {
+      this._sendSubLevel2Updates([...this._level2UpdateSubs.keys()]);
+    } else {
+      for (let marketSymbol of this._level2UpdateSubs.keys()) {
+        this._sendSubLevel2Updates(marketSymbol);
+      }
     }
     for (let marketSymbol of this._level3UpdateSubs.keys()) {
       this._sendSubLevel3Updates(marketSymbol);
