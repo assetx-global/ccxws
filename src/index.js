@@ -14,6 +14,7 @@ const gemini = require("./exchanges/gemini-client");
 const hitbtc = require("./exchanges/hitbtc-client");
 const huobi = require("./exchanges/huobi-client");
 const kraken = require("./exchanges/kraken-client");
+const lbank = require("./exchanges/lbank-client");
 const okex = require("./exchanges/okex-client");
 const poloniex = require("./exchanges/poloniex-client");
 const upbit = require("./exchanges/upbit-client");
@@ -55,6 +56,7 @@ module.exports = {
   hitbtc,
   huobi,
   kraken,
+  lbank,
   okex,
   poloniex,
   upbit,
