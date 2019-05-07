@@ -97,9 +97,29 @@ class SingleCexClient extends BasicAuthClient {
   }
 
   _constructevel2Snapshot(msg, market) {
-    let asks = msg.sell.map(p => new Level2Point(p[0].toFixed(8), p[1].toFixed(8)));
-    let bids = msg.buy.map(p => new Level2Point(p[0].toFixed(8), p[1].toFixed(8)));
+    let multiplier;
+    switch (market.base) {
+      case 'BTG':
+      case 'BTC':
+      case 'BCH':
+      case 'LTC':
+      case 'ZEC':
+      case 'DASH':
+        multiplier = 0.00000001;
+        break;
+      case 'GUSD':
+        multiplier = 0.01;
+        break;
+      case 'XLM':
+        multiplier = 0.0000001;
+        break;
+      default:
+        multiplier = 0.000001;
+        break;
+    }
 
+    let asks = msg.sell.map(p => new Level2Point(p[0], p[1] * multiplier));
+    let bids = msg.buy.map(p => new Level2Point(p[0], p[1] * multiplier));
     return new Level2Snapshot({
       exchange: "CEX",
       base: market.base,
