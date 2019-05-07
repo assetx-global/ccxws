@@ -1,4 +1,4 @@
-const { EventEmitter } = require("events");
+const {EventEmitter} = require("events");
 const crypto = require("crypto");
 const winston = require("winston");
 const moment = require("moment");
@@ -258,6 +258,9 @@ class BittrexClient extends EventEmitter {
     for (let msg of raw.M) {
       if (msg.M === "updateExchangeState") {
         msg.A.forEach(data => {
+          if (this.prevSeqDict[data.MarketName] && this.prevSeqDict[data.MarketName].outOfSync) {
+            return;
+          }
           if (this._tradeSubs.has(data.MarketName)) {
             let market = this._tradeSubs.get(data.MarketName);
             data.Fills.forEach(fill => {
@@ -285,7 +288,7 @@ class BittrexClient extends EventEmitter {
   }
 
   _constructTicker(msg, market) {
-    let { High, Low, Last, PrevDay, BaseVolume, Volume, TimeStamp, Bid, Ask } = msg;
+    let {High, Low, Last, PrevDay, BaseVolume, Volume, TimeStamp, Bid, Ask} = msg;
     let change = Last - PrevDay;
     let percentChange = ((Last - PrevDay) / PrevDay) * 100;
     return new Ticker({
@@ -327,8 +330,8 @@ class BittrexClient extends EventEmitter {
   // prettier-ignore
   _constructLevel2Snapshot(msg, market) {
     let sequenceId = msg.Nonce;
-    let bids = msg.Buys.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, { type: p.Type }));
-    let asks = msg.Sells.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, { type: p.Type }));
+    let bids = msg.Buys.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, {type: p.Type}));
+    let asks = msg.Sells.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, {type: p.Type}));
     return new Level2Snapshot({
       exchange: "Bittrex",
       base: market.base,
@@ -339,22 +342,41 @@ class BittrexClient extends EventEmitter {
     });
   }
 
+  _handleCoinReconection(remote_id) {
+    console.log(`handle recconection for coin ${remote_id}`);
+
+    // otherwise initiate the unsubscription
+    this._wss.call('CoreHub', 'QueryExchangeState', remote_id).done((err, result) => {
+      if (err) return winston.error('snapshot failed', remote_id, err);
+      if (!result) return winston.warn('snapshot empty', remote_id);
+      let snapshot = this._constructLevel2Snapshot(result, this._level2UpdateSubs.get(remote_id));
+      this.emit("reconnected", msg.MarketName);
+      this.prevSeqDict[msg.MarketName].outOfSync = false;
+      this.emit('l2snapshot', snapshot);
+    });
+  }
+
   // prettier-ignore
   _constructLevel2Update(msg, market) {
     let sequenceId = msg.Nonce;
-    let bids = msg.Buys.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, { type: p.Type }));
-    let asks = msg.Sells.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, { type: p.Type }));
+    let bids = msg.Buys.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, {type: p.Type}));
+    let asks = msg.Sells.map(p => new Level2Point(p.Rate.toFixed(15), p.Quantity.toFixed(15), undefined, {type: p.Type}));
 
-    if(!this.prevSeqDict[msg.MarketName]){
-      this.prevSeqDict[msg.MarketName] = sequenceId;
-    }else{
-      if(sequenceId - this.prevSeqDict[msg.MarketName] !== 1){
-        console.log(`bittrex book out of sync ${  sequenceId - this.prevSeqDict[msg.MarketName]}`);
-        delete this.prevSeqDict[msg.MarketName];
-       this.close();
-       this._connect();
+    if (!this.prevSeqDict[msg.MarketName]) {
+      this.prevSeqDict[msg.MarketName] = {sequenceId, outOfSync: false};
+    } else if (this.prevSeqDict[msg.MarketName].outOfSync) {
+      return;
+    } else {
+      if (this.prevSeqDict[msg.MarketName].sequenceId !== 0 && sequenceId - this.prevSeqDict[msg.MarketName].sequenceId !== 1) {
+        console.log(`bittrex book out of sync ${sequenceId - this.prevSeqDict[msg.MarketName].sequenceId}`);
+        this.prevSeqDict[msg.MarketName] = {sequenceId: 0, outOfSync: true};
+        const savedPair = this._level2UpdateSubs.get(msg.MarketName);
+        this.emit("disconnected", msg.MarketName);
+        setTimeout(async () => {
+          this._handleCoinReconection(msg.MarketName);
+        }, 10000);
       } else {
-        this.prevSeqDict[msg.MarketName] = sequenceId;
+        this.prevSeqDict[msg.MarketName].sequenceId = sequenceId;
       }
     }
 
