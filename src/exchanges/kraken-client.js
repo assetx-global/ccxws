@@ -195,7 +195,7 @@ class KrakenClient extends BasicClient {
   _sendSubLevel2Updates() {
     this._debounceSend("sub-l2updates", this._level2UpdateSubs, true, {
       name: "book",
-      depth: 100,
+      depth: 10,
     });
   }
 
