@@ -234,6 +234,10 @@ class BitfinexClient extends BasicClient {
   }
 
   _onLevel2Update(msg, channel) {
+    if (!Array.isArray(msg)){
+      console.log(`Msg is not array, msg: ${msg}`);
+      return;
+    }
     let remote_id = channel.pair;
     let market = this._level2UpdateSubs.get(remote_id);
     // if (!msg[1].toFixed) console.log(msg);
