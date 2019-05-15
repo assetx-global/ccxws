@@ -29,7 +29,7 @@ class BasicTradeClient extends EventEmitter {
     this.hasLevel2Snapshots = false;
     this.hasLevel2Updates = false;
     this.hasLevel3Updates = false;
-    this.sendAllUpdates = ['OKEx'];
+    this.sendAllUpdates = ['OKEx', 'Kraken'];
   }
 
   //////////////////////////////////////////////
