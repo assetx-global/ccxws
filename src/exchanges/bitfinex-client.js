@@ -64,7 +64,7 @@ class BitfinexClient extends BasicClient {
         channel: 'book',
         pair: remote_id,
         len: '100',
-      }),
+      })
     );
   }
 

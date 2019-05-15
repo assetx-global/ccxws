@@ -11,6 +11,9 @@ class OKExClient extends BasicClient {
   constructor() {
     super('wss://real.okex.com:10442/ws/v3', 'OKEx');
     this._pingInterval = setInterval(this._sendPing.bind(this), 30000);
+    this.on("connected", this._resetSemaphore.bind(this));
+    this.on("connected", this._startPing.bind(this));
+    this.on("disconnected", this._stopPing.bind(this));
 
     this.hasTickers = true;
     this.hasTrades = true;
@@ -18,6 +21,19 @@ class OKExClient extends BasicClient {
     this.hasLevel2Updates = true;
   }
 
+  _resetSemaphore() {
+    this._sem = semaphore(5);
+    this._hasSnapshot = new Set();
+  }
+
+  _startPing() {
+    this._pingInterval = setInterval(this._sendPing.bind(this), 30000);
+  }
+
+  _stopPing() {
+    clearInterval(this._pingInterval)
+  }
+  
   _sendPing() {
     if (this._wss) {
       this._wss.send(JSON.stringify({ event: 'ping' }));

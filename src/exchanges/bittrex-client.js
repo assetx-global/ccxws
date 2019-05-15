@@ -22,6 +22,7 @@ class BittrexClient extends EventEmitter {
     this._watcher = new Watcher(this);
     this._tickerConnected;
     this.prevSeqDict = {};
+    this._finalClosing = false;
 
     this.hasTickers = true;
     this.hasTrades = true;
@@ -32,6 +33,11 @@ class BittrexClient extends EventEmitter {
   }
 
   close(emitEvent = true) {
+    if (emitEvent) {
+      // if user activated close, we flag this
+      // so we don't attempt to reconnect
+      this._finalClosing = true;
+    }
     this._watcher.stop();
     if (this._wss) {
       try {
@@ -240,10 +246,12 @@ class BittrexClient extends EventEmitter {
   }
 
   _onDisconnected() {
-    clearTimeout(this._reconnectHandle);
-    this._watcher.stop();
-    this.emit("disconnected");
-    this._reconnectHandle = setTimeout(() => this.reconnect(false), this._retryTimeoutMs);
+    if (!this._finalClosing) {
+      clearTimeout(this._reconnectHandle);
+      this._watcher.stop();
+      this.emit("disconnected");
+      this._reconnectHandle = setTimeout(() => this.reconnect(false), this._retryTimeoutMs);
+    }
   }
 
   _onMessage(raw) {
@@ -350,8 +358,8 @@ class BittrexClient extends EventEmitter {
       if (err) return winston.error('snapshot failed', remote_id, err);
       if (!result) return winston.warn('snapshot empty', remote_id);
       let snapshot = this._constructLevel2Snapshot(result, this._level2UpdateSubs.get(remote_id));
-      this.emit("reconnected", msg.MarketName);
-      this.prevSeqDict[msg.MarketName].outOfSync = false;
+      this.emit("reconnected", remote_id);
+      this.prevSeqDict[remote_id].outOfSync = false;
       this.emit('l2snapshot', snapshot);
     });
   }
@@ -370,7 +378,6 @@ class BittrexClient extends EventEmitter {
       if (this.prevSeqDict[msg.MarketName].sequenceId !== 0 && sequenceId - this.prevSeqDict[msg.MarketName].sequenceId !== 1) {
         console.log(`bittrex book out of sync ${sequenceId - this.prevSeqDict[msg.MarketName].sequenceId}`);
         this.prevSeqDict[msg.MarketName] = {sequenceId: 0, outOfSync: true};
-        const savedPair = this._level2UpdateSubs.get(msg.MarketName);
         this.emit("disconnected", msg.MarketName);
         setTimeout(async () => {
           this._handleCoinReconection(msg.MarketName);

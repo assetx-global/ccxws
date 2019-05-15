@@ -29,8 +29,11 @@ class SmartWss extends EventEmitter {
    */
   async close() {
     winston.info("closing connection to", this._wssPath);
-    this._wss.removeAllListeners();
-    this._wss.close();
+    if (this._wss) {
+      this._wss.removeAllListeners();
+      this._wss.on("close", () => this.emit("disconnected"));
+      this._wss.close();
+    }
   }
 
   /**
