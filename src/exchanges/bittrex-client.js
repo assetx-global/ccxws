@@ -12,8 +12,10 @@ const Level2Update = require("../level2-update");
 const Level2Point = require("../level2-point");
 
 class BittrexClient extends EventEmitter {
-  constructor() {
+  constructor(params) {
     super();
+    this.apiName = 'bittrex';
+    this.consumer = params.consumer;
     this._retryTimeoutMs = 15000;
     this._cloudflare; // placeholder for information from cloudflare
     this._tickerSubs = new Map();
@@ -53,7 +55,7 @@ class BittrexClient extends EventEmitter {
   reconnect(emitEvent = true) {
     this.close(false);
     this._connect();
-    if (emitEvent) this.emit("reconnected");
+    if (emitEvent) this.consumer.reconnected(this.apiName);
   }
 
   subscribeTicker(market) {
@@ -141,7 +143,7 @@ class BittrexClient extends EventEmitter {
         if (!result) return winston.warn("snapshot empty", remote_id);
         let market = this._level2UpdateSubs.get(remote_id);
         let snapshot = this._constructLevel2Snapshot(result, market);
-        this.emit("l2snapshot", snapshot, market);
+        this.consumer.handleSnapshot(snapshot);
       });
     }
 
@@ -230,7 +232,7 @@ class BittrexClient extends EventEmitter {
   _onConnected() {
     winston.info("connected to wss://socket.bittrex.com/signalr");
     clearTimeout(this._reconnectHandle);
-    this.emit("connected");
+    this.consumer.connected(this.apiName);
     this._subCount = {};
     this._tickerConnected = false;
     this._watcher.start();
@@ -249,7 +251,7 @@ class BittrexClient extends EventEmitter {
     if (!this._finalClosing) {
       clearTimeout(this._reconnectHandle);
       this._watcher.stop();
-      this.emit("disconnected");
+      this.consumer.disconnected(this.apiName);
       this._reconnectHandle = setTimeout(() => this.reconnect(false), this._retryTimeoutMs);
     }
   }
@@ -273,13 +275,13 @@ class BittrexClient extends EventEmitter {
             let market = this._tradeSubs.get(data.MarketName);
             data.Fills.forEach(fill => {
               let trade = this._constructTradeFromMessage(fill, market);
-              this.emit("trade", trade, market);
+              // this.emit("trade", trade, market);
             });
           }
           if (this._level2UpdateSubs.has(data.MarketName)) {
             let market = this._level2UpdateSubs.get(data.MarketName);
             let l2update = this._constructLevel2Update(data, market);
-            this.emit("l2update", l2update, market);
+            setTimeout(() => this.consumer.handleUpdate(l2update), 0);
           }
         });
       }
@@ -288,7 +290,7 @@ class BittrexClient extends EventEmitter {
           if (this._tickerSubs.has(raw.MarketName)) {
             let market = this._tickerSubs.get(raw.MarketName);
             let ticker = this._constructTicker(raw, market);
-            this.emit("ticker", ticker, market);
+            // this.emit("ticker", ticker, market);
           }
         }
       }
@@ -358,9 +360,9 @@ class BittrexClient extends EventEmitter {
       if (err) return winston.error('snapshot failed', remote_id, err);
       if (!result) return winston.warn('snapshot empty', remote_id);
       let snapshot = this._constructLevel2Snapshot(result, this._level2UpdateSubs.get(remote_id));
-      this.emit("reconnected", remote_id);
+      this.consumer.reconnected(this.apiName, remote_id);
       this.prevSeqDict[remote_id].outOfSync = false;
-      this.emit('l2snapshot', snapshot);
+      this.consumer.handleSnapshot(snapshot);
     });
   }
 
@@ -378,7 +380,7 @@ class BittrexClient extends EventEmitter {
       if (this.prevSeqDict[msg.MarketName].sequenceId !== 0 && sequenceId - this.prevSeqDict[msg.MarketName].sequenceId !== 1) {
         console.log(`bittrex book out of sync ${sequenceId - this.prevSeqDict[msg.MarketName].sequenceId}`);
         this.prevSeqDict[msg.MarketName] = {sequenceId: 0, outOfSync: true};
-        this.emit("disconnected", msg.MarketName);
+        this.consumer.disconnected(this.apiName, msg.MarketName)
         setTimeout(async () => {
           this._handleCoinReconection(msg.MarketName);
         }, 10000);
