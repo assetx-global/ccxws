@@ -164,7 +164,7 @@ class KrakenClient extends BasicClient {
   }
   _constructLevel2Update(data) {
     let ask = data[1].a || [];
-    let bid = data[1].b || [];
+    let bid = data[2] ? data[2].b || []: data[1].b || [];
     ask = ask.sort((a, b) => (+a[2] > +b[2] ? 1 : -1)).reverse();
     bid = bid.sort((a, b) => (+a[2] > +b[2] ? 1 : -1)).reverse();
     const updatedAsk = [];
