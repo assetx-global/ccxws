@@ -234,8 +234,8 @@ class BitfinexClient extends BasicClient {
   }
 
   _onLevel2Update(msg, channel) {
-    if (!Array.isArray(msg)){
-      console.log(`Msg is not array, msg: ${msg}`);
+    if (!Array.isArray(msg) || !msg[0] || !msg[1] || !msg[2]){
+      console.log(`Msg has errors, msg: ${msg}`);
       return;
     }
     if(!msg[0].toFixed){
