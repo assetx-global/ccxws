@@ -9,11 +9,10 @@ const Level3Point = require('../level3-point');
 const Level3Update = require('../level3-update');
 
 class BitfinexClient extends BasicClient {
-  constructor(params) {
-    super('wss://api.bitfinex.com/ws/2', 'Bitfinex',params.consumer);
+  constructor() {
+    super('wss://api.bitfinex.com/ws/2', 'Bitfinex');
     this._channels = {};
-    this.apiName = 'bitfinex';
-    this.consumer = params.consumer;
+
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Updates = true;
@@ -231,7 +230,7 @@ class BitfinexClient extends BasicClient {
       bids,
       asks,
     });
-    this.consumer.handleSnapshot(result);
+    this.emit('l2snapshot', result);
   }
 
   _onLevel2Update(msg, channel) {
@@ -272,7 +271,7 @@ class BitfinexClient extends BasicClient {
       asks,
       bids,
     });
-    this.consumer.handleUpdate(update);
+    this.emit('l2update', update);
   }
 
   _onLevel3Snapshot(msg, channel) {
@@ -292,7 +291,7 @@ class BitfinexClient extends BasicClient {
       asks,
       bids,
     });
-    this.consumer.handleSnapshot(result);
+    this.emit('l2snapshot', result);
   }
 
   _onLevel3Update(msg, channel) {

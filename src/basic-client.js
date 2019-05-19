@@ -11,9 +11,8 @@ const Watcher = require("./watcher");
  * it run the _onConnected method and will resubscribe.
  */
 class BasicTradeClient extends EventEmitter {
-  constructor(wssPath, name, consumer) {
+  constructor(wssPath, name) {
     super();
-    this.consumer = consumer;
     this._wssPath = wssPath;
     this._name = name;
     this._tickerSubs = new Map();
@@ -42,7 +41,7 @@ class BasicTradeClient extends EventEmitter {
   reconnect() {
     this.close(false);
     this._connect();
-    this.consumer.reconnected(this._name.toLowerCase());
+    this.emit("reconnected");
   }
   subscribeTicker(market) {
     if (!this.hasTickers) return;
@@ -223,7 +222,7 @@ class BasicTradeClient extends EventEmitter {
    * feeds
    */
   _onConnected() {
-    this.consumer.connected(this._name.toLowerCase());
+    this.emit("connected");
     for (let marketSymbol of this._tickerSubs.keys()) {
       this._sendSubTicker(marketSymbol);
     }
@@ -252,7 +251,7 @@ class BasicTradeClient extends EventEmitter {
    */
   _onDisconnected() {
     this._watcher.stop();
-    this.consumer.disconnected(this._name.toLowerCase());
+    this.emit("disconnected");
   }
   ////////////////////////////////////////////
   // ABSTRACT
