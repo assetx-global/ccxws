@@ -9,8 +9,9 @@ const Level3Point = require("../level3-point");
 const Level3Update = require("../level3-update");
 
 class CoinbaseProClient extends BasicClient {
-  constructor() {
-    super("wss://ws-feed.pro.coinbase.com", "gdax");
+  constructor(params) {
+    super("wss://ws-feed.pro.coinbase.com", "gdax", params.consumer);
+    this.consumer = params.consumer;
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Spotshots = false;
@@ -108,13 +109,13 @@ class CoinbaseProClient extends BasicClient {
     if (type === "snapshot" && this._level2UpdateSubs.has(product_id)) {
       let market = this._level2UpdateSubs.get(product_id);
       let snapshot = this._constructLevel2Snapshot(msg, market);
-      this.emit("l2snapshot", snapshot, market);
+      this.consumer.handleSnapshot(snapshot);
     }
 
     if (type === "l2update" && this._level2UpdateSubs.has(product_id)) {
       let market = this._level2UpdateSubs.get(product_id);
       let update = this._constructLevel2Update(msg, market);
-      this.emit("l2update", update, market);
+      this.consumer.handleUpdate(update);
     }
 
     if (
@@ -123,7 +124,7 @@ class CoinbaseProClient extends BasicClient {
     ) {
       let market = this._level3UpdateSubs.get(product_id);
       let update = this._constructLevel3Update(msg, market);
-      this.emit("l3update", update, market);
+      this.consumer.handleUpdate(update);
       return;
     }
   }

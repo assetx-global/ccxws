@@ -138,8 +138,9 @@ const MARKET_IDS = {
 };
 
 class PoloniexClient extends BasicClient {
-  constructor() {
-    super("wss://api2.poloniex.com/", "Poloniex");
+  constructor(params) {
+    super("wss://api2.poloniex.com/", "Poloniex", params.consumer);
+    this.consumer = params.consumer;
     this._idMap = new Map();
     this.hasTickers = true;
     this.hasTrades = true;
@@ -253,7 +254,7 @@ class PoloniexClient extends BasicClient {
           if (!market) continue;
 
           let snapshot = this._constructoLevel2Snapshot(seq, update[1], market);
-          this.emit("l2snapshot", snapshot, market);
+          this.consumer.handleSnapshot(snapshot);
           break;
         }
         // trade events will stream-in after we are subscribed to the channel
@@ -296,7 +297,7 @@ class PoloniexClient extends BasicClient {
         asks,
         bids,
       });
-      this.emit("l2update", l2update, market);
+      this.consumer.handleUpdate(l2update);
     }
   }
 

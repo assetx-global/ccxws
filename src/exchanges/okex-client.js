@@ -8,13 +8,13 @@ const Level2Snapshot = require('../level2-snapshot');
 const Level2Update = require('../level2-update');
 
 class OKExClient extends BasicClient {
-  constructor() {
-    super('wss://real.okex.com:10442/ws/v3', 'OKEx');
+  constructor(params) {
+    super('wss://real.okex.com:10442/ws/v3', 'OKEx', params.consumer);
     this._pingInterval = setInterval(this._sendPing.bind(this), 30000);
     this.on("connected", this._resetSemaphore.bind(this));
     this.on("connected", this._startPing.bind(this));
     this.on("disconnected", this._stopPing.bind(this));
-
+    this.consumer = params.consumer;
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Snapshots = true;
@@ -33,7 +33,7 @@ class OKExClient extends BasicClient {
   _stopPing() {
     clearInterval(this._pingInterval)
   }
-  
+
   _sendPing() {
     if (this._wss) {
       this._wss.send(JSON.stringify({ event: 'ping' }));
@@ -128,12 +128,12 @@ class OKExClient extends BasicClient {
       for (let msg of msgs.data) {
         if (msgs.action === 'partial') {
           let snapshot = this._constructLevel2Snapshot(msg);
-          this.emit('l2snapshot', snapshot);
+          this.consumer.handleSnapshot(snapshot);
           return;
         }
         if (msgs.action === 'update') {
           let update = this._constructoL2Update(msg);
-          this.emit('l2update', update);
+          this.consumer.handleUpdate(update);
           return;
         }
       }

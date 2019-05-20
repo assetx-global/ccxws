@@ -11,8 +11,9 @@ const winston = require("winston");
  * it run the _onConnected method and will resubscribe.
  */
 class BasicAuthTradeClient extends BasicClient {
-  constructor(wssPath, name) {
-    super(wssPath, name);
+  constructor(wssPath, name, consumer) {
+    super(wssPath, name, consumer);
+    this.consumer = consumer;
     this.name = name;
   }
 
@@ -38,7 +39,7 @@ class BasicAuthTradeClient extends BasicClient {
    * request, and the normal subscriptions happen after authentication.
    */
   _onConnected() {
-    this.emit("connected");
+    this.consumer.connected(this.name.toLowerCase());
     this._sendAuthorizeRequest();
   }
 

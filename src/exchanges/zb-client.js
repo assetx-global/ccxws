@@ -7,10 +7,10 @@ const Level2Snapshot = require('../level2-snapshot');
 const Level2Update = require('../level2-update');
 
 class ZBClient extends BasicClient {
-  constructor() {
-    super('wss://api.zb.cn/websocket', 'ZB');
+  constructor(params) {
+    super('wss://api.zb.cn/websocket', 'ZB', params.consumer);
     this._pingInterval = setInterval(this._sendPing.bind(this), 30000);
-
+    this.consumer = params.consumer;
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Snapshots = true;
@@ -129,7 +129,7 @@ class ZBClient extends BasicClient {
     // l2 updates
     if (msg.channel.endsWith('depth')) {
       let update = this._constructLevel2Snapshot(msg);
-      this.emit('l2snapshot', update);
+      this.consumer.handleSnapshot(update);
       return;
     }
   }

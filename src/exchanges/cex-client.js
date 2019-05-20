@@ -9,9 +9,9 @@ const Watcher = require("../watcher");
 
 class CexClient extends BasicMultiClient {
   constructor(args) {
-    super();
+    super(args);
     this._clients = new Map();
-
+    this.consumer = args.consumer;
     this._name = "CEX_MULTI";
     this.auth = args;
     this.hasTickers = true;
@@ -20,14 +20,15 @@ class CexClient extends BasicMultiClient {
   }
 
   _createBasicClient(clientArgs) {
-    return new SingleCexClient({ auth: this.auth, market: clientArgs.market });
+    return new SingleCexClient({ auth: this.auth, market: clientArgs.market, consumer: this.consumer });
   }
 }
 
 class SingleCexClient extends BasicAuthClient {
   constructor(args) {
-    super("wss://ws.cex.io/ws", "CEX");
+    super("wss://ws.cex.io/ws", "CEX", args.consumer);
     this._watcher = new Watcher(this, 15 * 60 * 1000);
+    this.consumer = args.consumer;
     this.auth = args.auth;
     this.market = args.market;
     this.hasTickers = true;
@@ -188,7 +189,7 @@ class SingleCexClient extends BasicAuthClient {
       if (!market) return;
 
       let result = this._constructevel2Snapshot(data, market);
-      this.emit("l2snapshot", result, market);
+      this.consumer.handleSnapshot(result);
       return;
     }
 

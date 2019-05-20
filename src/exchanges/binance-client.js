@@ -12,9 +12,10 @@ const SmartWss = require("../smart-wss");
 const Watcher = require("../watcher");
 
 class BinanceClient extends EventEmitter {
-  constructor({ useAggTrades = true, requestSnapshot = true, reconnectIntervalMs = 300000 } = {}) {
+  constructor({ useAggTrades = true, requestSnapshot = true, reconnectIntervalMs = 300000, consumer } = {}) {
     super();
     this._name = "Binance";
+    this.consumer = consumer;
     this._tickerSubs = new Map();
     this._tradeSubs = new Map();
     this._level2SnapshotSubs = new Map();
@@ -73,7 +74,7 @@ class BinanceClient extends EventEmitter {
   reconnect() {
     winston.info("reconnecting");
     this._reconnect();
-    this.emit("reconnected");
+    this.consumer.reconnected(this._name);
   }
 
   close() {
@@ -157,12 +158,12 @@ class BinanceClient extends EventEmitter {
   _onConnected() {
     this._watcher.start();
     this._requestLevel2Snapshots(); // now that we're connected...
-    this.emit("connected");
+    this.consumer.connected(this._name);
   }
 
   _onDisconnected() {
     this._watcher.stop();
-    this.emit("disconnected");
+    this.consumer.disconnected(this._name);
   }
 
   _onMessage(raw) {
@@ -200,7 +201,7 @@ class BinanceClient extends EventEmitter {
       if (!market) return;
 
       let snapshot = this._constructLevel2Snapshot(msg, market);
-      this.emit("l2snapshot", snapshot, market);
+      this.consumer.handleSnapshot(snapshot);
       return;
     }
 
@@ -211,7 +212,7 @@ class BinanceClient extends EventEmitter {
       if (!market) return;
 
       let update = this._constructLevel2Update(msg, market);
-      this.emit("l2update", update, market);
+      this.consumer.handleUpdate(update);
       return;
     }
   }
@@ -345,7 +346,7 @@ class BinanceClient extends EventEmitter {
           asks,
           bids,
         });
-        this.emit("l2snapshot", snapshot, market);
+        this.consumer.handleSnapshot(snapshot);
       } catch (ex) {
         winston.warn(`failed to fetch snapshot for ${market.id} - ${ex}`);
         failed = true;

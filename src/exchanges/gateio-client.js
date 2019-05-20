@@ -9,9 +9,9 @@ const Level2Snapshot = require("../level2-snapshot");
 const Level2Update = require("../level2-update");
 
 class GateioClient extends BasicMultiClient {
-  constructor() {
-    super();
-
+  constructor(params) {
+    super(params);
+    this.consumer = params.consumer;
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Snapshots = false;
@@ -19,15 +19,16 @@ class GateioClient extends BasicMultiClient {
   }
 
   _createBasicClient() {
-    return new GateioSingleClient();
+    return new GateioSingleClient({consumer: this.consumer});
   }
 }
 
 class GateioSingleClient extends BasicClient {
-  constructor() {
-    super("wss://ws.gate.io/v3", "Gateio");
+  constructor(params) {
+    super("wss://ws.gate.io/v3", "Gateio", params.consumer);
     this.on("connected", this._startPing.bind(this));
     this.on("disconnected", this._stopPing.bind(this));
+    this.consumer = params.consumer;
     this._watcher = new Watcher(this, 15 * 60 * 1000);
     this.hasTickers = true;
     this.hasTrades = true;
@@ -46,7 +47,7 @@ class GateioSingleClient extends BasicClient {
 
   _sendPing() {
     if (this._wss) {
-      this._wss.send(JSON.stringify({ 
+      this._wss.send(JSON.stringify({
         method: "server.ping"
       }));
     }
@@ -143,10 +144,10 @@ class GateioSingleClient extends BasicClient {
       let isLevel2Snapshot = params[0];
       if (isLevel2Snapshot) {
         let l2snapshot = this._constructLevel2Snapshot(params[1], market);
-        this.emit("l2snapshot", l2snapshot, market);
+        this.consumer.handleSnapshot(l2snapshot);
       } else {
         let l2update = this._constructLevel2Update(params[1], market);
-        this.emit("l2update", l2update, market);
+        this.consumer.handleUpdate(l2update);
       }
       return;
     }

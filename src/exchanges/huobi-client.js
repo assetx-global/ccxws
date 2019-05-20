@@ -7,8 +7,9 @@ const Level2Point = require("../level2-point");
 const Level2Snapshot = require("../level2-snapshot");
 
 class HuobiClient extends BasicClient {
-  constructor() {
-    super("wss://api.huobi.pro/ws", "Huobi");
+  constructor(params) {
+    super("wss://api.huobi.pro/ws", "Huobi", params.consumer);
+    this.consumer = params.consumer;
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Snapshots = true;
@@ -123,7 +124,7 @@ class HuobiClient extends BasicClient {
         if (!market) return;
 
         let update = this._constructLevel2Snapshot(msgs, market);
-        this.emit("l2snapshot", update, market);
+        this.consumer.handleSnapshot(update);
         return;
       }
     });

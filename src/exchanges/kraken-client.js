@@ -8,8 +8,9 @@ const Level2Point = require('../level2-point');
 const Level2Snapshot = require('../level2-snapshot');
 const Level2Update = require('../level2-update');
 class KrakenClient extends BasicClient {
-  constructor() {
-    super('wss://ws.kraken.com', 'Kraken');
+  constructor(params) {
+    super('wss://ws.kraken.com', 'Kraken', params.consumer);
+    this.consumer = params.consumer;
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Updates = true;
@@ -97,12 +98,12 @@ class KrakenClient extends BasicClient {
       if (msg[1].b || msg[1].a) {
         let result = this._constructLevel2Update(msg);
         if (result) {
-          this.emit('l2update', result);
+          this.consumer.handleUpdate(result);
         }
       } else {
         let result = this._constructLevel2Snapshot(msg);
         if (result) {
-          this.emit('l2snapshot', result);
+          this.consumer.handleSnapshot(result);
         }
       }
       return;

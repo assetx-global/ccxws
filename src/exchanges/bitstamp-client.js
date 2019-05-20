@@ -12,9 +12,10 @@ const Level3Point = require("../level3-point");
 const Level3Update = require("../level3-update");
 
 class BitstampClient extends EventEmitter {
-  constructor() {
+  constructor(params) {
     super();
     this._name = "Bitstamp";
+    this.consumer = params.consumer;
     this._tradeSubs = new Map();
     this._level2SnapSubs = new Map();
     this._level2UpdateSubs = new Map();
@@ -144,7 +145,7 @@ class BitstampClient extends EventEmitter {
 
   _connected() {
     this._requestLevel2Snapshots();
-    this.emit("connected");
+    this.consumer.connected(this._name);
   }
 
   _subscribe(market, map, msg, subFn) {
@@ -204,7 +205,7 @@ class BitstampClient extends EventEmitter {
       buyOrderId: msg.buy_order_id,
       sellOrderId: msg.sell_order_id,
     });
-    this.emit("trade", trade, market);
+    // this.emit("trade", trade, market);
   }
 
   _sendSubLevel2Snapshot(remote_id) {
@@ -252,8 +253,7 @@ class BitstampClient extends EventEmitter {
       bids,
       asks,
     });
-
-    this.emit("l2snapshot", spot, market);
+    this.consumer.handleSnapshot(spot);
   }
 
   _sendSubLevel2Updates(remote_id) {
@@ -307,7 +307,7 @@ class BitstampClient extends EventEmitter {
       asks,
     });
 
-    this.emit("l2update", update, market);
+    this.consumer.handleUpdate(update);
   }
 
   _sendSubLevel3Updates(remote_id) {
@@ -354,8 +354,7 @@ class BitstampClient extends EventEmitter {
       asks,
       bids,
     });
-
-    this.emit("l3update", update, market);
+    this.consumer.handleUpdate(update);
   }
 
   _requestLevel2Snapshots() {
@@ -387,7 +386,7 @@ class BitstampClient extends EventEmitter {
           asks,
           bids,
         });
-        this.emit("l2snapshot", snapshot, market);
+        this.consumer.handleSnapshot(snapshot);
       } catch (ex) {
         winston.warn(`failed to fetch snapshot for ${market.id} - ${ex}`);
         this._requestLevel2Snapshot(market);

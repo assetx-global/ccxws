@@ -9,10 +9,10 @@ const Level2Snapshot = require("../level2-snapshot");
 const Level2Update = require("../level2-update");
 
 class HitBTCClient extends BasicClient {
-  constructor() {
-    super("wss://api.hitbtc.com/api/2/ws", "HitBTC");
+  constructor(params) {
+    super("wss://api.hitbtc.com/api/2/ws", "HitBTC", params.consumer);
     this._id = 0;
-
+    this.consumer = params.consumer;
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Updates = true;
@@ -146,7 +146,7 @@ class HitBTCClient extends BasicClient {
       if (!market) return;
 
       let result = this._constructLevel2Snapshot(msg.params, market);
-      this.emit("l2snapshot", result, market);
+      this.consumer.handleSnapshot(result);
       return;
     }
 
@@ -155,7 +155,7 @@ class HitBTCClient extends BasicClient {
       if (!market) return;
 
       let result = this._constructLevel2Update(msg.params, market);
-      this.emit("l2update", result, market);
+      this.consumer.handleUpdate(result);
       return;
     }
   }

@@ -11,24 +11,25 @@ const Level2Update = require("../level2-update");
 const MarketObjectTypes = require("../enums");
 
 class CoinexClient extends BasicMultiClient {
-  constructor() {
-    super();
-
+  constructor(params) {
+    super(params);
+    this.consumer = params.consumer;
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Updates = true;
   }
 
   _createBasicClient() {
-    return new CoinexSingleClient();
+    return new CoinexSingleClient({consumer:this.consumer});
   }
 }
 
 class CoinexSingleClient extends BasicClient {
-  constructor() {
-    super("wss://socket.coinex.com/", "Coinex");
+  constructor(params) {
+    super("wss://socket.coinex.com/", "Coinex", params.consumer);
     this.on("connected", this._startPing.bind(this));
     this.on("disconnected", this._stopPing.bind(this));
+    this.consumer = params.consumer;
     this._watcher = new Watcher(this, 15 * 60 * 1000);
     this.hasTickers = true;
     this.hasTrades = true;
@@ -191,10 +192,10 @@ class CoinexSingleClient extends BasicClient {
       let isLevel2Snapshot = params[0];
       if (isLevel2Snapshot) {
         let l2snapshot = this._constructLevel2Snapshot(params[1], market);
-        this.emit("l2snapshot", l2snapshot, market);
+        this.consumer.handleSnapshot(l2snapshot);
       } else {
         let l2update = this._constructLevel2Update(params[1], market);
-        this.emit("l2update", l2update, market);
+        this.consumer.handleUpdate(l2update);
       }
       return;
     }

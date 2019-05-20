@@ -7,12 +7,12 @@ const SmartWss = require("../smart-wss");
 const winston = require("winston");
 
 class GeminiClient extends EventEmitter {
-  constructor() {
+  constructor(params) {
     super();
     this._name = "Gemini";
     this._subscriptions = new Map();
     this.reconnectIntervalMs = 30 * 1000;
-
+    this.consumer = params.consumer;
     this.hasTrades = true;
     this.hasLevel2Snapshots = false;
     this.hasLevel2Updates = true;
@@ -120,7 +120,7 @@ class GeminiClient extends EventEmitter {
    */
   _onDisconnected(remote_id) {
     this._stopReconnectWatcher(this._subscriptions.get(remote_id));
-    this.emit("disconnected", remote_id);
+    this.consumer.disconnected(this._name,remote_id);
   }
 
   /**
@@ -147,7 +147,7 @@ class GeminiClient extends EventEmitter {
   _reconnect(subscription) {
     this._close(subscription);
     subscription.wss = this._connect(subscription.remoteId);
-    this.emit("reconnected", subscription.remoteId);
+    this.consumer.reconnected(this._name,subscription.remoteId)
   }
 
   /**
@@ -211,10 +211,10 @@ class GeminiClient extends EventEmitter {
         let updates = msg.events.filter(p => p.type === "change");
         if (socket_sequence === 0) {
           let snapshot = this._constructL2Snapshot(updates, market, eventId);
-          this.emit("l2snapshot", snapshot, market);
+          this.consumer.handleSnapshot(snapshot);
         } else {
           let update = this._constructL2Update(updates, market, eventId, timestampms);
-          this.emit("l2update", update, market);
+          this.consumer.handleUpdate(update);
         }
         return;
       }

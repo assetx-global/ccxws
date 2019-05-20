@@ -5,10 +5,10 @@ const winston = require("winston");
 const { wait } = require("./util");
 
 class BasicMultiClient extends EventEmitter {
-  constructor() {
+  constructor(params) {
     super();
     this._clients = new Map();
-
+    this.consumer = params.consumer;
     this.hasTickers = false;
     this.hasTrades = false;
     this.hasLevel2Snapshots = false;
@@ -152,10 +152,10 @@ class BasicMultiClient extends EventEmitter {
         let subscribed = client.subscribeLevel2Updates(market);
         if (subscribed) {
           client.on("l2update", (l2update, market) => {
-            this.emit("l2update", l2update, market);
+            this.consumer.handleUpdate(l2update);
           });
           client.on("l2snapshot", (l2snapshot, market) => {
-            this.emit("l2snapshot", l2snapshot, market);
+            this.consumer.handleSnapshot(l2snapshot);
           });
         }
       }
@@ -164,7 +164,7 @@ class BasicMultiClient extends EventEmitter {
         let subscribed = client.subscribeLevel2Snapshots(market);
         if (subscribed) {
           client.on("l2snapshot", (l2snapshot, market) => {
-            this.emit("l2snapshot", l2snapshot, market);
+            this.consumer.handleSnapshot(l2snapshot);
           });
         }
       }
