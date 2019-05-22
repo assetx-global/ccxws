@@ -382,7 +382,7 @@ class BittrexClient extends EventEmitter {
     console.log(`handle recconection for coin ${remote_id}`);
 
     this.emit('disconnected', remote_id);
-    this.consumer.disconnect(this.apiName, remote_id);
+    this.consumer.disconnected(this.apiName, remote_id);
 
     // otherwise initiate the unsubscription
     this._wss.call('CoreHub', 'QueryExchangeState', remote_id).done((err, result) => {
