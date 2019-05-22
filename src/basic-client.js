@@ -42,6 +42,7 @@ class BasicTradeClient extends EventEmitter {
   reconnect() {
     this.close(false);
     this._connect();
+    this.emit('reconnected');
     this.consumer.reconnected(this._name.toLowerCase());
   }
   subscribeTicker(market) {
@@ -223,8 +224,8 @@ class BasicTradeClient extends EventEmitter {
    * feeds
    */
   _onConnected() {
-    this.consumer.connected(this._name.toLowerCase());
     this.emit('connected');
+    this.consumer.connected(this._name.toLowerCase());
     for (let marketSymbol of this._tickerSubs.keys()) {
       this._sendSubTicker(marketSymbol);
     }

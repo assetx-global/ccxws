@@ -189,6 +189,7 @@ class SingleCexClient extends BasicAuthClient {
       if (!market) return;
 
       let result = this._constructevel2Snapshot(data, market);
+      this.emit('l2snapshot');
       this.consumer.handleSnapshot(result);
       return;
     }

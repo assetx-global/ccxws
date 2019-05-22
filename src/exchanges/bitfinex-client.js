@@ -231,6 +231,7 @@ class BitfinexClient extends BasicClient {
       bids,
       asks,
     });
+    this.emit('l2snapshot');
     this.consumer.handleSnapshot(result);
   }
 
@@ -272,6 +273,7 @@ class BitfinexClient extends BasicClient {
       asks,
       bids,
     });
+    this.emit('l2update');
     this.consumer.handleUpdate(update);
   }
 
@@ -292,6 +294,7 @@ class BitfinexClient extends BasicClient {
       asks,
       bids,
     });
+    this.emit('l2snapshot');
     this.consumer.handleSnapshot(result);
   }
 

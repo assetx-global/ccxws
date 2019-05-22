@@ -254,6 +254,7 @@ class PoloniexClient extends BasicClient {
           if (!market) continue;
 
           let snapshot = this._constructoLevel2Snapshot(seq, update[1], market);
+          this.emit('l2snapshot');
           this.consumer.handleSnapshot(snapshot);
           break;
         }
@@ -297,6 +298,7 @@ class PoloniexClient extends BasicClient {
         asks,
         bids,
       });
+      this.emit('l2update');
       this.consumer.handleUpdate(l2update);
     }
   }

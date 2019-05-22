@@ -39,6 +39,7 @@ class BasicAuthTradeClient extends BasicClient {
    * request, and the normal subscriptions happen after authentication.
    */
   _onConnected() {
+    this.emit('connected');
     this.consumer.connected(this.name.toLowerCase());
     this._sendAuthorizeRequest();
   }

@@ -145,6 +145,7 @@ class BitstampClient extends EventEmitter {
 
   _connected() {
     this._requestLevel2Snapshots();
+    this.emit('connected');
     this.consumer.connected(this._name);
   }
 
@@ -253,6 +254,7 @@ class BitstampClient extends EventEmitter {
       bids,
       asks,
     });
+    this.emit('l2snapshot');
     this.consumer.handleSnapshot(spot);
   }
 
@@ -307,6 +309,7 @@ class BitstampClient extends EventEmitter {
       asks,
     });
 
+    this.this.emit('l2update');
     this.consumer.handleUpdate(update);
   }
 
@@ -354,6 +357,7 @@ class BitstampClient extends EventEmitter {
       asks,
       bids,
     });
+    this.emit('l2update');
     this.consumer.handleUpdate(update);
   }
 
@@ -386,6 +390,7 @@ class BitstampClient extends EventEmitter {
           asks,
           bids,
         });
+        this.emit('l2snapshot');
         this.consumer.handleSnapshot(snapshot);
       } catch (ex) {
         winston.warn(`failed to fetch snapshot for ${market.id} - ${ex}`);

@@ -98,11 +98,13 @@ class KrakenClient extends BasicClient {
       if (msg[1].b || msg[1].a) {
         let result = this._constructLevel2Update(msg);
         if (result) {
+          this.emit('l2update');
           this.consumer.handleUpdate(result);
         }
       } else {
         let result = this._constructLevel2Snapshot(msg);
         if (result) {
+          this.emit('l2snapshot');
           this.consumer.handleSnapshot(result);
         }
       }

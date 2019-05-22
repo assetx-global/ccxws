@@ -128,11 +128,13 @@ class OKExClient extends BasicClient {
       for (let msg of msgs.data) {
         if (msgs.action === 'partial') {
           let snapshot = this._constructLevel2Snapshot(msg);
+          this.emit('l2snapshot');
           this.consumer.handleSnapshot(snapshot);
           return;
         }
         if (msgs.action === 'update') {
           let update = this._constructoL2Update(msg);
+          this.emit('l2update');
           this.consumer.handleUpdate(update);
           return;
         }

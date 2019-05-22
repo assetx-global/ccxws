@@ -74,6 +74,7 @@ class BinanceClient extends EventEmitter {
   reconnect() {
     winston.info("reconnecting");
     this._reconnect();
+    this.emit('reconnected');
     this.consumer.reconnected(this._name);
   }
 
@@ -158,11 +159,13 @@ class BinanceClient extends EventEmitter {
   _onConnected() {
     this._watcher.start();
     this._requestLevel2Snapshots(); // now that we're connected...
+    this.emit('connected');
     this.consumer.connected(this._name);
   }
 
   _onDisconnected() {
     this._watcher.stop();
+    this.emit('disconnected');
     this.consumer.disconnected(this._name);
   }
 
@@ -201,6 +204,7 @@ class BinanceClient extends EventEmitter {
       if (!market) return;
 
       let snapshot = this._constructLevel2Snapshot(msg, market);
+      this.emit('l2snapshot');
       this.consumer.handleSnapshot(snapshot);
       return;
     }
@@ -212,6 +216,7 @@ class BinanceClient extends EventEmitter {
       if (!market) return;
 
       let update = this._constructLevel2Update(msg, market);
+      this.emit('l2update');
       this.consumer.handleUpdate(update);
       return;
     }
@@ -346,6 +351,7 @@ class BinanceClient extends EventEmitter {
           asks,
           bids,
         });
+        this.emit('l2snapshot');
         this.consumer.handleSnapshot(snapshot);
       } catch (ex) {
         winston.warn(`failed to fetch snapshot for ${market.id} - ${ex}`);

@@ -79,6 +79,7 @@ class LbankClient extends BasicClient {
     const msg = JSON.parse(raw);
     if (msg.type === 'depth') {
       let update = this._constructLevel2Snapshot(msg);
+      this.emit('l2snapshot');
       this.consumer.handleSnapshot(update);
       return;
     } else if (msg.type === 'ping') {

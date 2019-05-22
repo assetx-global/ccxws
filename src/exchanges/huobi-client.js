@@ -124,6 +124,7 @@ class HuobiClient extends BasicClient {
         if (!market) return;
 
         let update = this._constructLevel2Snapshot(msgs, market);
+        this.emit('l2snapshot');
         this.consumer.handleSnapshot(update);
         return;
       }

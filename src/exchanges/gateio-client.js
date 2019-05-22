@@ -144,9 +144,11 @@ class GateioSingleClient extends BasicClient {
       let isLevel2Snapshot = params[0];
       if (isLevel2Snapshot) {
         let l2snapshot = this._constructLevel2Snapshot(params[1], market);
+        this.emit('l2snapshot');
         this.consumer.handleSnapshot(l2snapshot);
       } else {
         let l2update = this._constructLevel2Update(params[1], market);
+        this.emit('l2update');
         this.consumer.handleUpdate(l2update);
       }
       return;

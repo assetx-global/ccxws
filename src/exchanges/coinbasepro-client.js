@@ -109,12 +109,14 @@ class CoinbaseProClient extends BasicClient {
     if (type === "snapshot" && this._level2UpdateSubs.has(product_id)) {
       let market = this._level2UpdateSubs.get(product_id);
       let snapshot = this._constructLevel2Snapshot(msg, market);
+      this.emit('l2snapshot');
       this.consumer.handleSnapshot(snapshot);
     }
 
     if (type === "l2update" && this._level2UpdateSubs.has(product_id)) {
       let market = this._level2UpdateSubs.get(product_id);
       let update = this._constructLevel2Update(msg, market);
+      this.emit('l2update');
       this.consumer.handleUpdate(update);
     }
 
@@ -124,6 +126,7 @@ class CoinbaseProClient extends BasicClient {
     ) {
       let market = this._level3UpdateSubs.get(product_id);
       let update = this._constructLevel3Update(msg, market);
+      this.emit('l2update');
       this.consumer.handleUpdate(update);
       return;
     }

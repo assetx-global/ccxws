@@ -129,6 +129,7 @@ class ZBClient extends BasicClient {
     // l2 updates
     if (msg.channel.endsWith('depth')) {
       let update = this._constructLevel2Snapshot(msg);
+      this.emit('l2snapshot');
       this.consumer.handleSnapshot(update);
       return;
     }

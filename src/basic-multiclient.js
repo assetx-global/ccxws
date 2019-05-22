@@ -132,41 +132,41 @@ class BasicMultiClient extends EventEmitter {
 
       if (marketObjectType === MarketObjectTypes.ticker) {
         let subscribed = client.subscribeTicker(market);
-        if (subscribed) {
-          client.on("ticker", (ticker, market) => {
-            this.emit("ticker", ticker, market);
-          });
-        }
+        // if (subscribed) {
+        //   client.on("ticker", (ticker, market) => {
+        //     this.emit("ticker", ticker, market);
+        //   });
+        // }
       }
 
       if (marketObjectType === MarketObjectTypes.trade) {
         let subscribed = client.subscribeTrades(market);
-        if (subscribed) {
-          client.on("trade", (trade, market) => {
-            this.emit("trade", trade, market);
-          });
-        }
+        // if (subscribed) {
+        //   client.on("trade", (trade, market) => {
+        //     this.emit("trade", trade, market);
+        //   });
+        // }
       }
 
       if (marketObjectType === MarketObjectTypes.level2update) {
         let subscribed = client.subscribeLevel2Updates(market);
-        if (subscribed) {
-          client.on("l2update", (l2update, market) => {
-            this.consumer.handleUpdate(l2update);
-          });
-          client.on("l2snapshot", (l2snapshot, market) => {
-            this.consumer.handleSnapshot(l2snapshot);
-          });
-        }
+        // if (subscribed) {
+        //   client.on("l2update", (l2update, market) => {
+        //     this.consumer.handleUpdate(l2update);
+        //   });
+        //   client.on("l2snapshot", (l2snapshot, market) => {
+        //     this.consumer.handleSnapshot(l2snapshot);
+        //   });
+        // }
       }
 
       if (marketObjectType === MarketObjectTypes.level2snapshot) {
         let subscribed = client.subscribeLevel2Snapshots(market);
-        if (subscribed) {
-          client.on("l2snapshot", (l2snapshot, market) => {
-            this.consumer.handleSnapshot(l2snapshot);
-          });
-        }
+        // if (subscribed) {
+        //   client.on("l2snapshot", (l2snapshot, market) => {
+        //     this.consumer.handleSnapshot(l2snapshot);
+        //   });
+        // }
       }
     } catch (ex) {
       winston.error("subscribe failed " + ex.message);

@@ -146,6 +146,7 @@ class HitBTCClient extends BasicClient {
       if (!market) return;
 
       let result = this._constructLevel2Snapshot(msg.params, market);
+      this.emit('l2snapshot');
       this.consumer.handleSnapshot(result);
       return;
     }
@@ -155,6 +156,7 @@ class HitBTCClient extends BasicClient {
       if (!market) return;
 
       let result = this._constructLevel2Update(msg.params, market);
+      this.emit('l2update');
       this.consumer.handleUpdate(result);
       return;
     }
