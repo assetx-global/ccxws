@@ -381,6 +381,9 @@ class BittrexClient extends EventEmitter {
   _handleCoinReconection(remote_id) {
     console.log(`handle recconection for coin ${remote_id}`);
 
+    this.emit('disconnected', remote_id);
+    this.consumer.disconnect(this.apiName, remote_id);
+
     // otherwise initiate the unsubscription
     this._wss.call('CoreHub', 'QueryExchangeState', remote_id).done((err, result) => {
       if (err) return winston.error('snapshot failed', remote_id, err);
@@ -409,7 +412,7 @@ class BittrexClient extends EventEmitter {
         console.log(`bittrex book out of sync ${sequenceId - this.prevSeqDict[msg.MarketName].sequenceId}`);
         this.prevSeqDict[msg.MarketName] = {sequenceId: 0, outOfSync: true};
         this.emit('disconnected');
-        this.consumer.disconnected(this.apiName, msg.MarketName)
+        this.consumer.disconnected(this.apiName, msg.MarketName);
         setTimeout(async () => {
           this._handleCoinReconection(msg.MarketName);
         }, 10000);
