@@ -133,7 +133,7 @@ class CoinexSingleClient extends BasicClient {
     this._wss.send(
       JSON.stringify({
         method: "depth.subscribe",
-        params: [remote_id, 100, "0"], // 100 is the maximum number of items Coinex will let you request
+        params: [remote_id, 50, "0"], // 100 is the maximum number of items Coinex will let you request
         id,
       })
     );
