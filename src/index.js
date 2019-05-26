@@ -12,7 +12,7 @@ const ethfinex = require("./exchanges/ethfinex-client");
 const gateio = require("./exchanges/gateio-client");
 const gemini = require("./exchanges/gemini-client");
 const hitbtc = require("./exchanges/hitbtc-client");
-const huobi = require("./exchanges/huobi-client");
+const huobipro = require("./exchanges/huobi-client");
 const kraken = require("./exchanges/kraken-client");
 const lbank = require("./exchanges/lbank-client");
 const okex = require("./exchanges/okex-client");
@@ -33,7 +33,7 @@ module.exports = {
   Gateio: gateio,
   Gemini: gemini,
   HitBTC: hitbtc,
-  Huobi: huobi,
+  huobipro,
   Kraken: kraken,
   OKEx: okex,
   Poloniex: poloniex,
@@ -54,7 +54,6 @@ module.exports = {
   gateio,
   gemini,
   hitbtc,
-  huobi,
   kraken,
   lbank,
   okex,

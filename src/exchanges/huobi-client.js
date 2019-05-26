@@ -8,7 +8,7 @@ const Level2Snapshot = require("../level2-snapshot");
 
 class HuobiClient extends BasicClient {
   constructor(params) {
-    super("wss://api.huobi.pro/ws", "Huobi", params.consumer);
+    super("wss://api.huobi.pro/ws", "huobipro", params.consumer);
     this.consumer = params.consumer;
     this.hasTickers = true;
     this.hasTrades = true;
@@ -136,7 +136,7 @@ class HuobiClient extends BasicClient {
     let dayChange = close - open;
     let dayChangePercent = ((close - open) / open) * 100;
     return new Ticker({
-      exchange: "Huobi",
+      exchange: "huobipro",
       base: market.base,
       quote: market.quote,
       timestamp: Date.now(),
@@ -156,7 +156,7 @@ class HuobiClient extends BasicClient {
     let unix = Math.trunc(parseInt(ts));
 
     return new Trade({
-      exchange: "Huobi",
+      exchange: "huobipro",
       base: market.base,
       quote: market.quote,
       tradeId: id,
@@ -172,7 +172,7 @@ class HuobiClient extends BasicClient {
     let bids = tick.bids.map(p => new Level2Point(p[0].toFixed(15), p[1].toFixed(15)));
     let asks = tick.asks.map(p => new Level2Point(p[0].toFixed(15), p[1].toFixed(15)));
     return new Level2Snapshot({
-      exchange: "Huobi",
+      exchange: "huobipro",
       base: market.base,
       quote: market.quote,
       timestampMs: ts,
