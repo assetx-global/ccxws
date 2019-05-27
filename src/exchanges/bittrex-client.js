@@ -33,6 +33,8 @@ class BittrexClient extends EventEmitter {
     this.hasLevel3Snapshots = false;
     this.hasLevel3Updates = false;
     this.messages = [];
+    this.snapshots = {};
+    this.lostMessages = {};
     this.isRunning = false;
   }
 
@@ -146,17 +148,25 @@ class BittrexClient extends EventEmitter {
       this._wss.call("CoreHub", "QueryExchangeState", remote_id).done((err, result) => {
         if (err) return winston.error("snapshot failed", remote_id, err);
         if (!result) return winston.warn("snapshot empty", remote_id);
+        this.snapshots[remote_id] = 1;
+        if(this.lostMessages[remote_id]) {
+          const activeMessages = this.lostMessages[remote_id].filter((msg)=> msg.Nonce > result.Nonce)
+          this.messages = this.messages.concat(activeMessages);
+          // console.log(`recover ${activeMessages.length} messages from ${remote_id}`);
+          delete this.lostMessages[remote_id];
+        }
         let market = this._level2UpdateSubs.get(remote_id);
         let snapshot = this._constructLevel2Snapshot(result, market);
         this.emit('l2snapshot');
         this.consumer.handleSnapshot(snapshot);
+        // initiate the subscription
       });
+      this._wss.call("CoreHub", "SubscribeToExchangeDeltas", remote_id).done(err => {
+        if (err) return winston.error("subscribe failed", remote_id, err);
+      });
+    }else {
+      console.log()
     }
-
-    // initiate the subscription
-    this._wss.call("CoreHub", "SubscribeToExchangeDeltas", remote_id).done(err => {
-      if (err) return winston.error("subscribe failed", remote_id, err);
-    });
   }
 
   _sendUnsub(remote_id) {
@@ -266,14 +276,24 @@ class BittrexClient extends EventEmitter {
   }
   _handleMessages(){
     while (this.messages.length !== 0) {
-      if(this.messages.length > 1){
-        console.log(this.messages.length);
-      }
-      let raw = this.messages.splice(0,1)[0];
+      let origData = this.messages.splice(0,1)[0];
+      let raw = origData;
       // message format
       // { type: 'utf8', utf8Data: '{"C":"d-5ED873F4-C,0|Ejin,0|Ejio,2|I:,67FC","M":[{"H":"CoreHub","M":"updateExchangeState","A":[{"MarketName":"BTC-ETH","Nounce":26620,"Buys":[{"Type":0,"Rate":0.07117610,"Quantity":7.22300000},{"Type":1,"Rate":0.07117608,"Quantity":0.0},{"Type":0,"Rate":0.07114400,"Quantity":0.08000000},{"Type":0,"Rate":0.07095001,"Quantity":0.46981436},{"Type":1,"Rate":0.05470000,"Quantity":0.0},{"Type":1,"Rate":0.05458200,"Quantity":0.0}],"Sells":[{"Type":2,"Rate":0.07164500,"Quantity":21.55180000},{"Type":1,"Rate":0.07179460,"Quantity":0.0},{"Type":0,"Rate":0.07180300,"Quantity":6.96349769},{"Type":0,"Rate":0.07190173,"Quantity":0.27815742},{"Type":1,"Rate":0.07221246,"Quantity":0.0},{"Type":0,"Rate":0.07223299,"Quantity":58.39672846},{"Type":1,"Rate":0.07676211,"Quantity":0.0}],"Fills":[]}]}]}' }
       // this.message.push(raw);
-      if (!raw.utf8Data) continue;
+      if (!raw.utf8Data) {
+        if(raw.MarketName){
+          let market = this._level2UpdateSubs.get(raw.MarketName);
+          let l2update = this._constructLevel2Update(raw, market);
+
+          this.emit('l2update');
+          const status = this.consumer.handleUpdate(l2update);
+          if(status && status === 'Wrong'){
+            this._handleCoinReconection(raw.MarketName);
+          }
+        }
+        continue;
+      }
       raw = JSON.parse(raw.utf8Data);
 
       if (!raw.M) continue;
@@ -292,8 +312,16 @@ class BittrexClient extends EventEmitter {
               });
             }
             if (this._level2UpdateSubs.has(data.MarketName)) {
+              if (!this.snapshots[data.MarketName]){
+                if (!this.lostMessages[data.MarketName]){
+                  this.lostMessages[data.MarketName] = [];
+                }
+                this.lostMessages[data.MarketName].push(data);
+                return;
+              }
               let market = this._level2UpdateSubs.get(data.MarketName);
               let l2update = this._constructLevel2Update(data, market);
+
               this.emit('l2update');
               const status = this.consumer.handleUpdate(l2update);
               if(status && status === 'Wrong'){
@@ -380,6 +408,7 @@ class BittrexClient extends EventEmitter {
 
   _handleCoinReconection(remote_id) {
     console.log(`handle recconection for coin ${remote_id}`);
+    delete this.snapshots[remote_id];
 
     this.emit('disconnected', remote_id);
     this.consumer.disconnected(this.apiName, remote_id);
@@ -388,6 +417,7 @@ class BittrexClient extends EventEmitter {
     this._wss.call('CoreHub', 'QueryExchangeState', remote_id).done((err, result) => {
       if (err) return winston.error('snapshot failed', remote_id, err);
       if (!result) return winston.warn('snapshot empty', remote_id);
+      this.snapshots[remote_id] = 1;
       let snapshot = this._constructLevel2Snapshot(result, this._level2UpdateSubs.get(remote_id));
       this.emit('reconnected');
       this.consumer.reconnected(this.apiName, remote_id);
