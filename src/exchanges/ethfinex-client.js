@@ -162,17 +162,17 @@ class EthfinexClient extends BasicClient {
       base: market.base,
       quote: market.quote,
       timestamp: Date.now(),
-      last: last.toFixed(8),
-      open: open.toFixed(8),
-      high: high.toFixed(8),
-      low: low.toFixed(8),
-      volume: volume.toFixed(8),
-      change: change.toFixed(8),
-      changePercent: changePercent.toFixed(2),
-      bid: bid.toFixed(8),
-      bidVolume: bidSize.toFixed(8),
-      ask: ask.toFixed(8),
-      askVolume: askSize.toFixed(8),
+      last: last,
+      open: open,
+      high: high,
+      low: low,
+      volume: volume,
+      change: change,
+      changePercent: changePercent,
+      bid: bid,
+      bidVolume: bidSize,
+      ask: ask,
+      askVolume: askSize,
     });
     this.emit("ticker", ticker, market);
   }
@@ -182,8 +182,8 @@ class EthfinexClient extends BasicClient {
     let remote_id = this._channels[chanId].pair;
     let market = this._tradeSubs.get(remote_id);
     let side = amount > 0 ? "buy" : "sell";
-    price = price.toFixed(8);
-    amount = Math.abs(amount).toFixed(8);
+    price = price;
+    amount = Math.abs(amount);
     let trade = new Trade({
       exchange: "Ethfinex",
       base: market.base,
@@ -204,7 +204,7 @@ class EthfinexClient extends BasicClient {
     let asks = [];
     for (let [price, count, size] of msg[1]) {
       let isBid = size > 0;
-      let result = new Level2Point(price.toFixed(8), Math.abs(size).toFixed(8), count.toFixed(0));
+      let result = new Level2Point(price, Math.abs(size), count);
       if (isBid) bids.push(result);
       else asks.push(result);
     }
@@ -223,7 +223,7 @@ class EthfinexClient extends BasicClient {
     let remote_id = this._channels[channel].pair;
     let market = this._level2UpdateSubs.get(remote_id);
     if (!price.toFixed) console.log(msg);
-    let point = new Level2Point(price.toFixed(8), Math.abs(size).toFixed(8), count.toFixed(0));
+    let point = new Level2Point(price, Math.abs(size), count);
     let asks = [];
     let bids = [];
 
@@ -232,7 +232,7 @@ class EthfinexClient extends BasicClient {
     else asks.push(point);
 
     let isDelete = count === 0;
-    if (isDelete) point.size = (0).toFixed(8); // reset the size to 0, comes in as 1 or -1 to indicate bid/ask
+    if (isDelete) point.size = (0); // reset the size to 0, comes in as 1 or -1 to indicate bid/ask
 
     let update = new Level2Update({
       exchange: "Ethfinex",
@@ -250,7 +250,7 @@ class EthfinexClient extends BasicClient {
     let bids = [];
     let asks = [];
     msg[1].forEach(p => {
-      let point = new Level3Point(p[0], p[1].toFixed(8), Math.abs(p[2]).toFixed(8));
+      let point = new Level3Point(p[0], p[1], Math.abs(p[2]));
       if (p[2] > 0) bids.push(point);
       else asks.push(point);
     });
@@ -270,7 +270,7 @@ class EthfinexClient extends BasicClient {
     let bids = [];
     let asks = [];
 
-    let point = new Level3Point(msg[1], msg[2].toFixed(8), Math.abs(msg[3]).toFixed(8));
+    let point = new Level3Point(msg[1], msg[2], Math.abs(msg[3]));
     if (msg[3] > 0) bids.push(point);
     else asks.push(point);
 

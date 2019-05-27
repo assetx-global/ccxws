@@ -175,7 +175,7 @@ class OKExClient extends BasicClient {
       low: dayLow,
       volume: vol,
       change: change,
-      changePercent: dayChangePercent.toFixed(2),
+      changePercent: dayChangePercent,
       bid: buy,
       ask: sell,
     });

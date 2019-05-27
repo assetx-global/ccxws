@@ -146,8 +146,8 @@ class CoinbaseProClient extends BasicClient {
       high: high_24h,
       low: low_24h,
       volume: volume_24h,
-      change: change.toFixed(8),
-      changePercent: changePercent.toFixed(8),
+      change: change,
+      changePercent: changePercent,
       bid: best_bid,
       ask: best_ask,
     });

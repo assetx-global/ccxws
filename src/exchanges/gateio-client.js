@@ -171,8 +171,8 @@ class GateioSingleClient extends BasicClient {
       low: rawTick.low,
       volume: rawTick.baseVolume,
       quoteVolume: rawTick.quoteVolume,
-      change: change.toFixed(8),
-      changePercent: changePercent.toFixed(8),
+      change: change,
+      changePercent: changePercent,
     });
   }
 

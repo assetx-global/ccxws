@@ -219,8 +219,8 @@ class CoinexSingleClient extends BasicClient {
       low: low,
       volume: volume,
       quoteVolume: deal,
-      change: change.toFixed(8),
-      changePercent: changePercent.toFixed(8),
+      change: change,
+      changePercent: changePercent,
     });
   }
 

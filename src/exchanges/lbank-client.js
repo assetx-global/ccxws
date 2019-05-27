@@ -99,14 +99,14 @@ class LbankClient extends BasicClient {
       base: market.base,
       quote: market.quote,
       timestamp: Date.now(),
-      last: close.toFixed(8),
-      open: open.toFixed(8),
-      high: high.toFixed(8),
-      low: low.toFixed(8),
-      volume: amount.toFixed(8),
-      quoteVolume: vol.toFixed(15),
-      change: dayChange.toFixed(15),
-      changePercent: dayChangePercent.toFixed(8),
+      last: close,
+      open: open,
+      high: high,
+      low: low,
+      volume: amount,
+      quoteVolume: vol,
+      change: dayChange,
+      changePercent: dayChangePercent,
     });
   }
 
@@ -134,8 +134,8 @@ class LbankClient extends BasicClient {
 
     let market = this._level2SnapshotSubs.get(msg.pair);
 
-    let bids = msg.depth.bids.map(p => new Level2Point(p[0].toFixed(15), p[1].toFixed(15)));
-    let asks = msg.depth.asks.map(p => new Level2Point(p[0].toFixed(15), p[1].toFixed(15)));
+    let bids = msg.depth.bids.map(p => new Level2Point(p[0], p[1]));
+    let asks = msg.depth.asks.map(p => new Level2Point(p[0], p[1]));
     if (!market) {
       return;
     }

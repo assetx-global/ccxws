@@ -344,7 +344,7 @@ class BitstampClient extends EventEmitter {
     let bids = [];
 
     let timestampMs = Math.trunc(msg.microtimestamp / 1000); // comes in in microseconds
-    let point = new Level3Point(msg.id, msg.price.toFixed(8), msg.amount.toFixed(8), { type });
+    let point = new Level3Point(msg.id, msg.price, msg.amount, { type });
 
     if (msg.order_type === 0) bids.push(point);
     else asks.push(point);

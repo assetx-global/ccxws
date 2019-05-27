@@ -92,8 +92,8 @@ class SingleCexClient extends BasicAuthClient {
       last: price,
       open: open24,
       volume: volume,
-      change: change.toFixed(8),
-      changePercent: changePercent.toFixed(8),
+      change: change,
+      changePercent: changePercent,
     });
   }
 

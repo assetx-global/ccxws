@@ -121,14 +121,14 @@ class KrakenClient extends BasicClient {
       base: market.base,
       quote: market.quote,
       timestamp: Date.now(),
-      last: close.toFixed(8),
-      open: open.toFixed(8),
-      high: high.toFixed(8),
-      low: low.toFixed(8),
-      volume: amount.toFixed(8),
-      quoteVolume: vol.toFixed(15),
-      change: dayChange.toFixed(15),
-      changePercent: dayChangePercent.toFixed(8),
+      last: close,
+      open: open,
+      high: high,
+      low: low,
+      volume: amount,
+      quoteVolume: vol,
+      change: dayChange,
+      changePercent: dayChangePercent,
     });
   }
   _constructTradesFromMessage(remoteId, datum) {

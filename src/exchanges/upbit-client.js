@@ -167,7 +167,7 @@ class UpbitClient extends BasicClient {
       high: high_price,
       low: low_price,
       volume: acc_trade_volume,
-      quoteVolume: (acc_trade_volume * trade_price).toFixed(8),
+      quoteVolume: (acc_trade_volume * trade_price),
       change: change_price,
       changePercent: change_rate,
     });

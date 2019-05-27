@@ -140,14 +140,14 @@ class HuobiClient extends BasicClient {
       base: market.base,
       quote: market.quote,
       timestamp: Date.now(),
-      last: close.toFixed(8),
-      open: open.toFixed(8),
-      high: high.toFixed(8),
-      low: low.toFixed(8),
-      volume: amount.toFixed(8),
-      quoteVolume: vol.toFixed(8),
-      change: dayChange.toFixed(8),
-      changePercent: dayChangePercent.toFixed(8),
+      last: close,
+      open: open,
+      high: high,
+      low: low,
+      volume: amount,
+      quoteVolume: vol,
+      change: dayChange,
+      changePercent: dayChangePercent,
     });
   }
 
@@ -169,8 +169,8 @@ class HuobiClient extends BasicClient {
 
   _constructLevel2Snapshot(msg, market) {
     let { ts, tick } = msg;
-    let bids = tick.bids.map(p => new Level2Point(p[0].toFixed(15), p[1].toFixed(15)));
-    let asks = tick.asks.map(p => new Level2Point(p[0].toFixed(15), p[1].toFixed(15)));
+    let bids = tick.bids.map(p => new Level2Point(p[0], p[1]));
+    let asks = tick.asks.map(p => new Level2Point(p[0], p[1]));
     return new Level2Snapshot({
       exchange: "huobipro",
       base: market.base,
