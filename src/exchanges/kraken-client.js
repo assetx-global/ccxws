@@ -243,5 +243,44 @@ class KrakenClient extends BasicClient {
       console.log(`${pairName} market not found`);
     }
   }
+
+  /**
+    Since Kraken doesn't send a trade id, we need to come up with a way
+    to generate one on our own. The REST API include the last trade id
+    which gives us the clue that it is the second timestamp + 9 sub-second
+    digits.
+
+    The WS will provide timestamps with up to 6 decimals of precision.
+    The REST API only has timestamps with 4 decimal of precision.
+
+    To maintain consistency, we're going to use the following formula:
+      <integer part of unix timestamp> +
+      <first 4 digits of fractional part of unix timestamp> +
+      00000
+
+
+    We're using the ROUND_HALF_UP method. From testing, this resulted
+    in the best rounding results. Ids are in picoseconds, the websocket
+    is broadcast in microsecond, and the REST results are truncated to
+    4 decimals.
+
+    This mean it is impossible to determine the rounding algorithm or
+    the proper rounding to go from 6 to 4 decimals as the 6 decimals
+    are being rounded from 9 which causes issues as the half
+    point for 4 digit rounding
+      .222950 rounds up to .2230 if the pico_ms value is > .222295000
+      .222950 rounds down to .2229 if the pico_ms value is < .222295000
+
+    Consumer code will need to account for collisions and id mismatch.
+   */
+  _createTradeId(unix) {
+    let roundMode = Decimal.ROUND_HALF_UP;
+    let [integer, frac] = unix.split(".");
+    let fracResult = new Decimal("0." + frac)
+      .toDecimalPlaces(4, roundMode)
+      .toFixed(4)
+      .split(".")[1];
+    return integer + fracResult + "00000";
+  }
 }
 module.exports = KrakenClient;
