@@ -5,12 +5,13 @@ const Level2Point = require("../level2-point");
 const Level2Snapshot = require("../level2-snapshot");
 
 class UpbitClient extends BasicClient {
-  constructor() {
+  constructor(params) {
     super("wss://api.upbit.com/websocket/v1", "Upbit");
 
     this.hasTickers = true;
     this.hasTrades = true;
     this.hasLevel2Snapshots = true;
+    this.consumer = params.consumer;
 
     this.debouceTimeoutHandles = new Map();
     this.debounceWait = 200;
@@ -103,6 +104,7 @@ class UpbitClient extends BasicClient {
 
       let snapshot = this._constructLevel2Snapshot(msg, market);
       this.emit("l2snapshot", snapshot, market);
+      this.consumer.handleSnapshot(snapshot);
       return;
     }
   }
