@@ -9,7 +9,7 @@ const Level2Update = require('../level2-update');
 
 class OKExClient extends BasicClient {
   constructor(params) {
-    super('wss://real.okex.com:10442/ws/v3', 'OKEx', params.consumer);
+    super('wss://real.okex.com:10442/ws/v3', 'okex3', params.consumer);
     this._pingInterval = setInterval(this._sendPing.bind(this), 30000);
     this.on("connected", this._resetSemaphore.bind(this));
     this.on("connected", this._startPing.bind(this));
@@ -249,7 +249,7 @@ class OKExClient extends BasicClient {
     let asks = msg.asks.map(p => new Level2Point(p[0], p[1]));
     let bids = msg.bids.map(p => new Level2Point(p[0], p[1]));
     return new Level2Snapshot({
-      exchange: 'OKEx',
+      exchange: 'okex3',
       base: market.base,
       quote: market.quote,
       timestampMs: msg.timestamp,
@@ -289,7 +289,7 @@ class OKExClient extends BasicClient {
     let asks = msg.asks ? msg.asks.map(p => new Level2Point(p[0], p[1])) : [];
     let bids = msg.bids ? msg.bids.map(p => new Level2Point(p[0], p[1])) : [];
     return new Level2Update({
-      exchange: 'OKEx',
+      exchange: 'okex3',
       base: market.base,
       quote: market.quote,
       timestampMs: msg.timestamp,
