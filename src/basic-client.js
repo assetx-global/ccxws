@@ -28,7 +28,7 @@ class BasicTradeClient extends EventEmitter {
     this.hasLevel2Snapshots = false;
     this.hasLevel2Updates = false;
     this.hasLevel3Updates = false;
-    this.sendAllUpdates = ['OKEx', 'Kraken', 'Gateio'];
+    this.sendAllUpdates = ['okex3', 'Kraken', 'Gateio'];
   }
   //////////////////////////////////////////////
   close(emitClosed = true) {
