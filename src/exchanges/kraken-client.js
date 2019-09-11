@@ -66,8 +66,10 @@ class KrakenClient extends BasicClient {
   _sendUnsubLevel2Snapshots(remote_id) {
     this._wss.send(
       JSON.stringify({
-        unsub: `market.${remote_id}.depth.step0`,
-      }),
+        event: 'unsubscribe',
+        pair: [remote_id],
+        subscription: { name: 'book' },
+      })
     );
   }
   _sendSubLevel2Updates(remote_ids) {
@@ -154,6 +156,16 @@ class KrakenClient extends BasicClient {
     if (market) {
       let bids = bid.map(p => new Level2Point(p[0], p[1]));
       let asks = ask.map(p => new Level2Point(p[0], p[1]));
+      if(bids[0].price >= asks[0].price){
+        this._sendSubLevel2Updates(market);
+        return new Level2Snapshot({
+          exchange: 'Kraken',
+          base: market.base,
+          quote: market.quote,
+          asks:[],
+          bids:[],
+        });
+      }
       return new Level2Snapshot({
         exchange: 'Kraken',
         base: market.base,
@@ -166,8 +178,8 @@ class KrakenClient extends BasicClient {
     }
   }
   _constructLevel2Update(data) {
-    let ask = data[1].a || [];
-    let bid = data[2] ? data[2].b || []: data[1].b || [];
+    let ask = data[1].a || data[2].a || [];
+    let bid = data[1].b || data[2].b || [];
     ask = ask.sort((a, b) => (+a[2] > +b[2] ? 1 : -1)).reverse();
     bid = bid.sort((a, b) => (+a[2] > +b[2] ? 1 : -1)).reverse();
     const updatedAsk = [];
@@ -245,33 +257,33 @@ class KrakenClient extends BasicClient {
   }
 
   /**
-    Since Kraken doesn't send a trade id, we need to come up with a way
-    to generate one on our own. The REST API include the last trade id
-    which gives us the clue that it is the second timestamp + 9 sub-second
-    digits.
+   Since Kraken doesn't send a trade id, we need to come up with a way
+   to generate one on our own. The REST API include the last trade id
+   which gives us the clue that it is the second timestamp + 9 sub-second
+   digits.
 
-    The WS will provide timestamps with up to 6 decimals of precision.
-    The REST API only has timestamps with 4 decimal of precision.
+   The WS will provide timestamps with up to 6 decimals of precision.
+   The REST API only has timestamps with 4 decimal of precision.
 
-    To maintain consistency, we're going to use the following formula:
-      <integer part of unix timestamp> +
-      <first 4 digits of fractional part of unix timestamp> +
-      00000
+   To maintain consistency, we're going to use the following formula:
+   <integer part of unix timestamp> +
+   <first 4 digits of fractional part of unix timestamp> +
+   00000
 
 
-    We're using the ROUND_HALF_UP method. From testing, this resulted
-    in the best rounding results. Ids are in picoseconds, the websocket
-    is broadcast in microsecond, and the REST results are truncated to
-    4 decimals.
+   We're using the ROUND_HALF_UP method. From testing, this resulted
+   in the best rounding results. Ids are in picoseconds, the websocket
+   is broadcast in microsecond, and the REST results are truncated to
+   4 decimals.
 
-    This mean it is impossible to determine the rounding algorithm or
-    the proper rounding to go from 6 to 4 decimals as the 6 decimals
-    are being rounded from 9 which causes issues as the half
-    point for 4 digit rounding
-      .222950 rounds up to .2230 if the pico_ms value is > .222295000
-      .222950 rounds down to .2229 if the pico_ms value is < .222295000
+   This mean it is impossible to determine the rounding algorithm or
+   the proper rounding to go from 6 to 4 decimals as the 6 decimals
+   are being rounded from 9 which causes issues as the half
+   point for 4 digit rounding
+   .222950 rounds up to .2230 if the pico_ms value is > .222295000
+   .222950 rounds down to .2229 if the pico_ms value is < .222295000
 
-    Consumer code will need to account for collisions and id mismatch.
+   Consumer code will need to account for collisions and id mismatch.
    */
   _createTradeId(unix) {
     let roundMode = Decimal.ROUND_HALF_UP;
