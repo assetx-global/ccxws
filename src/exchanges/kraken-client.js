@@ -84,8 +84,10 @@ class KrakenClient extends BasicClient {
   _sendUnsubLevel2Updates(remote_id) {
     this._wss.send(
       JSON.stringify({
-        unsub: `market.${remote_id}.depth.step0`,
-      }),
+        event: 'unsubscribe',
+        pair: [remote_id],
+        subscription: { name: 'book' },
+      })
     );
   }
   _onMessage(raw) {
@@ -157,7 +159,7 @@ class KrakenClient extends BasicClient {
       let bids = bid.map(p => new Level2Point(p[0], p[1]));
       let asks = ask.map(p => new Level2Point(p[0], p[1]));
       if(bids[0].price >= asks[0].price){
-        this._sendSubLevel2Updates(market);
+        this._sendUnsubLevel2Updates(market);
         return new Level2Snapshot({
           exchange: 'Kraken',
           base: market.base,
