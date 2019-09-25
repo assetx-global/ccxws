@@ -206,7 +206,7 @@ class HitBTCClient extends BasicClient {
     let asks = ask.map(p => new Level2Point(p.price, p.size));
     let bids = bid.map(p => new Level2Point(p.price, p.size));
     return new Level2Snapshot({
-      exchange: "HitBTC",
+      exchange: "HitBTC2",
       base: market.base,
       quote: market.quote,
       sequenceId: sequence,
@@ -220,7 +220,7 @@ class HitBTCClient extends BasicClient {
     let asks = ask.map(p => new Level2Point(p.price, p.size, p.count));
     let bids = bid.map(p => new Level2Point(p.price, p.size, p.count));
     return new Level2Update({
-      exchange: "HitBTC",
+      exchange: "HitBTC2",
       base: market.base,
       quote: market.quote,
       sequenceId: sequence,
